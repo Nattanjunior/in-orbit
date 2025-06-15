@@ -42,7 +42,7 @@ export default function Home() {
             <SheetHeader>
               <SheetTitle className="text-white">Cadastrar meta</SheetTitle>
               <SheetDescription className="text-gray-400">
-                Adicione atividades que <span className="text-purple-400">te fazem bem</span> e que você <br/> quer continuar praticando toda semana.
+                Adicione atividades que <span className="text-purple-400">te fazem bem</span> e que você quer continuar praticando toda semana.
               </SheetDescription>
             </SheetHeader>
             <div className="grid gap-4">

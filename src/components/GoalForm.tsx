@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface GoalFormProps {
   onClose: () => void;
@@ -8,12 +9,39 @@ interface GoalFormProps {
 const GoalForm: React.FC<GoalFormProps> = ({ onClose }) => {
   const [activity, setActivity] = useState('');
   const [frequency, setFrequency] = useState('1x na semana');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Atividade:', activity);
-    console.log('Frequência:', frequency);
-    // Aqui você adicionaria a lógica para salvar a meta
+    setError('');
+
+    if (!activity.trim()) {
+      setError('O campo "Qual a atividade?" é obrigatório.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/goals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ activity, frequency }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao salvar a meta.');
+      }
+
+      const newGoal = await response.json();
+      onClose();
+      router.push(`/metas/${newGoal.id}`);
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Erro ao salvar meta:', err);
+    }
   };
 
   return (
@@ -28,8 +56,9 @@ const GoalForm: React.FC<GoalFormProps> = ({ onClose }) => {
           placeholder="Praticar exercícios, meditar, etc..."
           value={activity}
           onChange={(e) => setActivity(e.target.value)}
-          className="w-full p-3 rounded-lg bg-[#2a2a2a] border border-gray-700 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+          className="w-full p-3 rounded-lg bg-[#2a2a2a] border border-gray-700 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ec4899]"
         />
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </div>
 
       <div>
@@ -46,7 +75,7 @@ const GoalForm: React.FC<GoalFormProps> = ({ onClose }) => {
           ].map((option) => (
             <label
               key={option.value}
-              className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${frequency === option.value ? 'bg-purple-800 border-2 border-purple-400' : 'bg-[#2a2a2a] border border-gray-700 hover:border-gray-500'}`}
+              className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${frequency === option.value ? 'border-2 border-[#ec4899]' : 'border border-gray-700 hover:border-gray-500'}`}
             >
               <div className="flex items-center">
                 <input
@@ -58,10 +87,10 @@ const GoalForm: React.FC<GoalFormProps> = ({ onClose }) => {
                   className="hidden"
                 />
                 <span
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 ${frequency === option.value ? 'border-purple-400 bg-purple-500' : 'border-gray-500'}`}
+                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 ${frequency === option.value ? 'border-[#ec4899]' : 'border-gray-500'}`}
                 >
                   {frequency === option.value && (
-                    <Check className="h-3 w-3 text-white" />
+                    <Check className="h-3 w-3 text-[#ec4899]" />
                   )}
                 </span>
                 <span className="text-gray-300">{option.label}</span>
